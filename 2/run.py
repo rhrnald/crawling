@@ -11,18 +11,29 @@ from concurrent.futures import ThreadPoolExecutor
 
 start_idx = 1
 
-# section=5 # 국민일보
-section=32 # 경향신문
 
-__end_idx=[0]*32
-__end_idx[5] = 1544261 #국민
-__end_idx[32] = 3164333 #경향
+# 문화일보 21
+# 동아일보 20
+# 국민일보 5
+# 경향신문 32
+# 서울신문 81
 
+section = 20
+__end_idx={0:0}
+__end_idx[5]=1544261 #국민일보
+__end_idx[20]=3445333 #동아일보
+__end_idx[21]=2526385 #문화일보
+__end_idx[32]=3164333 #경향
+__end_idx[81]=3294291 #서울신문
+
+start_idx=1830340
 end_idx=__end_idx[section]
 
 total_num= end_idx-start_idx+1
 thread_num= 32
 block_size=int((total_num+thread_num-1)/thread_num)
+
+RAW=True
 
 def save_file(filepath, data):
     # open the file
@@ -41,17 +52,12 @@ def generate_file(idx):
         try:
             r = session.get(url, timeout=1)
         except:
-            print(str(idx) + " get URL error " + str(cnt))
             continue
 
         break
-
-    tmp = r.html.find('[property=og\:title]')
-    if(not tmp) :
-        return False, "", ""
-
+    return True, r.text
+    
     result=""
-
     for pf in prefixs:
         base = r.html.find(pf)
         for d in base:
@@ -64,8 +70,7 @@ def generate_file(idx):
  
 # generate and save a file
 exist_check_point=False
-check_point=[0]*32
-#check_point = [21995,76920,144777,157730,203986,289554,299218,374954,420416,461083,521986,565880,589494,675626,719787,753296,806799,841102,910866,965180,976524,1033180,1094031,1119377,1159397,1219222,1265294,1336030,1367352,1438864,1455030,1533856]
+check_point = [15812,123469,231021,338758,446215,538337,646004,753671,861338,969005,1076672,1184339,1292006,1399673,1507340,1615007,1722674,1830341,1946475,2055692,2168710,2272480,2380871,2487946,2589818,2697740,2814954,2913156,3030341,3137892,3245753,3353389]
 def generate_and_save(path, num):
     try_num=0
     suc_num=0
@@ -82,7 +87,7 @@ def generate_and_save(path, num):
 
         # generate data
         try_num+=1
-        valid, title, data = generate_file(identifier)
+        valid, data = generate_file(identifier)
         # create a unique filename
         if(valid==False) :
             continue
@@ -90,13 +95,17 @@ def generate_and_save(path, num):
 
         filepath = join(path, str(identifier)+'.txt')
         # save data file to disk
-        save_file(filepath, title+'\n'+data)
+        save_file(filepath, data)
 
     save_file(f'res/stat.2.{section:d}/e{num:d}.txt', f'total: {try_num:d}, suc: {suc_num:d}')
 
 
 # generate many data files in a directory
-def main(path='res/2.'+str(section), _thread_num=thread_num):
+
+save_path = '/data/hyejin/chaewon/raw_2.'+str(section)
+#save_path = 'res/raw_2.'+str(section)
+
+def main(path=save_path, _thread_num=thread_num):
     # create a local directory to save files
     makedirs(path, exist_ok=True)
     makedirs(f'res/stat.2.{section:d}', exist_ok=True)
@@ -104,9 +113,13 @@ def main(path='res/2.'+str(section), _thread_num=thread_num):
     # create the thread pool
     ss=time.time()
 
+    '''
     with ThreadPoolExecutor(_thread_num) as exe:
         # submit tasks to generate files
         _ = [exe.submit(generate_and_save, path, i) for i in range(_thread_num)]
+    '''
+    process_num=int(sys.argv[1])
+    generate_and_save(path, process_num)
     
     ee = time.time()
 
