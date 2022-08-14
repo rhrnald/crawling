@@ -1,4 +1,5 @@
 from requests_html import HTMLSession
+from urllib.request import urlopen
 import time
 import numpy
 import random
@@ -30,7 +31,8 @@ start_idx=1830340
 end_idx=__end_idx[section]
 
 total_num= end_idx-start_idx+1
-thread_num= 32
+thread_num=32
+
 block_size=int((total_num+thread_num-1)/thread_num)
 
 RAW=True
@@ -96,14 +98,15 @@ def generate_and_save(path, num):
         filepath = join(path, str(identifier)+'.txt')
         # save data file to disk
         save_file(filepath, data)
+        #save_file(filepath, title+'\n'+data)
 
     save_file(f'res/stat.2.{section:d}/e{num:d}.txt', f'total: {try_num:d}, suc: {suc_num:d}')
 
 
 # generate many data files in a directory
-
-save_path = '/data/hyejin/chaewon/raw_2.'+str(section)
-#save_path = 'res/raw_2.'+str(section)
+#root_path ='/data/hyejin/chaewon/'
+root_path ='/data/roseanne/chaewon/'
+save_path = root_path+'raw_2.'+str(section)
 
 def main(path=save_path, _thread_num=thread_num):
     # create a local directory to save files
