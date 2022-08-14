@@ -1,4 +1,5 @@
 from requests_html import HTMLSession
+from urllib.request import urlopen
 import time
 import numpy
 import random
@@ -15,12 +16,14 @@ section = 21 # 문화일보
 # section = 20 #동아일보
 # section=5 # 국민일보
 # section=32 # 경향신문
+# section = 81 # 서울신문
 
 __end_idx={0:0}
 __end_idx[5]=1544261 #국민
 __end_idx[20]=3445333 #동아일보
 __end_idx[21]=2526385 #문화일보
 __end_idx[32]=3164333 #경향
+__end_idx[81]=3294291 #서울신문
 
 end_idx=__end_idx[section]
 
@@ -42,33 +45,8 @@ def save_file(filepath, data):
 prefixs = ['div#articeBody','div#dic_area', 'div#newsEndContents']
 def generate_file(idx):
     url = 'https://n.news.naver.com/mnews/article/%03d/%010d'%(section, idx)
-    session = HTMLSession()
-    while True:
-        try:
-            r = session.get(url, timeout=1)
-        except:
-            print(str(idx) + " get URL error " + str(cnt))
-            continue
-
-        break
-
-    tmp = r.html.find('[property=og\:title]')
-    if(not tmp) :
-        return False, "", ""
-
-    result=""
-
-    return True, "", r.text
-
-    for pf in prefixs:
-        base = r.html.find(pf)
-        for d in base:
-            result = result+d.text+"\n"
-
-    if(result == ""):
-        print(str(idx) + " no content")
-
-    return True, tmp[0].attrs['content'], result
+    with urlopen(url) as r:
+        return True, r.read().decode("utf-8")
  
 # generate and save a file
 exist_check_point=False
@@ -83,13 +61,13 @@ def generate_and_save(path, num):
     else:
         s = start_idx+block_size*num
 
-    for identifier in range(s+100, start_idx+block_size*(num+1)):
+    for identifier in range(s, start_idx+block_size*(num+1)):
         if identifier%100 == 0:
             save_file(f'res/stat.2.{section:d}/p{num:d}_proc.txt', f'total: {try_num:d}, suc: {suc_num:d}, i: {identifier:d}')
 
         # generate data
         try_num+=1
-        valid, title, data = generate_file(identifier)
+        valid, data = generate_file(identifier)
         # create a unique filename
         if(valid==False) :
             continue

@@ -5,8 +5,8 @@ int r[50];
 int b[50];
 string s;
 
-const int start_idx = 1878834;
-const int end_idx = 3164333;
+const int start_idx = 1;
+const int end_idx = 3445333;
 const int total_num= end_idx-start_idx+1;
 const int thread_num= 32;
 const int block_size=int((total_num+thread_num-1)/thread_num);
@@ -21,8 +21,7 @@ int main(void) {
 		while(cur>=l[idx+1]) idx++;
 		b[idx] = cur;	
 	}
-	for(int i=0; i<32; i++) printf("%d,", b[i]);
-	printf("\n");
-	for(int i=0; i<=32; i++) printf("%d,", l[i]-1);
+	for(int i=0; i<32; i++) printf("%d/(%d,%d) - (%2.2f %%)\n", b[i], l[i], l[i+1], 1.0*(b[i]-l[i])/(l[i+1]-l[i]));
+	for(int i=0; i<32; i++) printf("%d,", b[i]+1);
 	printf("\n");
 }
